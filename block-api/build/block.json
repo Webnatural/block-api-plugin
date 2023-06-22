@@ -1,0 +1,30 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 2,
+  "name": "create-block/block-api",
+  "version": "1.0.0",
+  "title": "Block Api",
+  "category": "widgets",
+  "attributes": {
+    "apiUrl": {
+      "type": "string",
+      "default": "https://httpbin.org/post"
+    },
+    "numberOfElements": {
+      "type": "number",
+      "default": 5
+    },
+    "content": {
+      "type": "object"
+    }
+  },
+  "icon": "smiley",
+  "description": "Example block scaffolded with Create Block tool.",
+  "supports": {
+    "html": false
+  },
+  "textdomain": "block-api",
+  "editorScript": "file:./index.js",
+  "editorStyle": "file:./index.css",
+  "style": "file:./style-index.css"
+}

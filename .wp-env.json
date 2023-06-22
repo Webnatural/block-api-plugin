@@ -1,0 +1,13 @@
+{
+    "config": {
+        "WP_DEBUG": true,
+        "SCRIPT_DEBUG": true,
+        "WP_DEBUG_DISPLAY": true
+    },
+    "plugins": [
+        "https://downloads.wordpress.org/plugin/wp-phpmyadmin-extension.zip"
+    ],
+    "mappings": {
+        "wp-content/plugins/plugin-block-api": "./block-api"
+    }
+}
