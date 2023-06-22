@@ -109,12 +109,11 @@ function Edit({
   const {
     apiUrl,
     numberOfElements,
-    content
+    data
   } = attributes;
   const [isLoading, setIsLoading] = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
   const [isPreview, setIsPreview] = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useState)(true);
   const [apiResponse, setApiResponse] = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useState)(null);
-  const isDisabled = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useContext)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.Disabled.Context);
   const updateApiUrl = newUrl => {
     setAttributes({
       apiUrl: newUrl
@@ -127,7 +126,7 @@ function Edit({
   };
   const updateContent = newValue => {
     setAttributes({
-      content: newValue
+      data: newValue
     });
   };
   function switchToPreview() {
@@ -176,9 +175,9 @@ function Edit({
     // Fetch API response when apiUrl or numberOfElements changes
     if (isPreview) {
       const transientName = "block_api_transient"; // Transient name
-      const expiration = 60 * 60; // Transient expiration time (1 hour)
+      const expiration = 60; // Transient expiration time (1 minute)
       const payload = {
-        title: "Title 1",
+        title: "Title 3",
         content: "Lorem ipsum dolor sit amet"
       };
       const fetchAPIResponse = async () => {
@@ -215,7 +214,6 @@ function Edit({
           const transientData = await getTransient(transientName);
           if (transientData.success) {
             setApiResponse(transientData.data);
-            //   attributes.content = transientData.data.json;
             updateContent(transientData.data.json);
             setIsLoading(false);
           } else {
@@ -241,7 +239,7 @@ function Edit({
     onClick: switchToPreview,
     icon: _wordpress_icons__WEBPACK_IMPORTED_MODULE_6__["default"]
   }))), isPreview ? (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(_preview__WEBPACK_IMPORTED_MODULE_4__["default"], {
-    content: attributes.content,
+    data: attributes.data,
     isSelected: isSelected
   }) : (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", null, (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.TextControl, {
     label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)("API URL", "block-api-block"),
@@ -349,15 +347,14 @@ const DEFAULT_STYLES = `
 	}
 `;
 function BlockApiPreview({
-  content,
+  data,
   isSelected
 }) {
   const settingStyles = (0,_wordpress_data__WEBPACK_IMPORTED_MODULE_2__.useSelect)(select => {
     return select(_wordpress_block_editor__WEBPACK_IMPORTED_MODULE_1__.store).getSettings()?.styles;
   }, []);
   const styles = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useMemo)(() => [DEFAULT_STYLES, ...(0,_wordpress_block_editor__WEBPACK_IMPORTED_MODULE_1__.transformStyles)(settingStyles)], [settingStyles]);
-  console.log(content);
-  return (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("h3", null, content.title), (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", null, content.content));
+  return (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, data && data.title && data.content ? (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", null, (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("h3", null, data.title), (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", null, data.content)) : "No content");
 }
 
 /***/ }),
@@ -407,16 +404,13 @@ function save({
   attributes
 }) {
   const {
-    apiUrl,
-    numberOfElements,
-    content
+    data
   } = attributes;
-  console.log(attributes);
 
   // Make API request and render the fetched elements
   // Use the fetched data to render the desired output in the frontend
 
-  return (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", _wordpress_block_editor__WEBPACK_IMPORTED_MODULE_1__.useBlockProps.save(), (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("h3", null, content.title), (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", null, content.content));
+  return (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", _wordpress_block_editor__WEBPACK_IMPORTED_MODULE_1__.useBlockProps.save(), data && data.title && data.content ? (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", null, (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("h3", null, data.title), (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", null, data.content)) : "No content");
 }
 
 /***/ }),
@@ -509,7 +503,7 @@ module.exports = window["wp"]["primitives"];
   \************************/
 /***/ ((module) => {
 
-module.exports = JSON.parse('{"$schema":"https://schemas.wp.org/trunk/block.json","apiVersion":2,"name":"create-block/block-api","version":"1.0.0","title":"Block Api","category":"widgets","attributes":{"apiUrl":{"type":"string","default":"https://httpbin.org/post"},"numberOfElements":{"type":"number","default":5},"content":{"type":"object"}},"icon":"smiley","description":"Example block scaffolded with Create Block tool.","supports":{"html":false},"textdomain":"block-api","editorScript":"file:./index.js","editorStyle":"file:./index.css","style":"file:./style-index.css"}');
+module.exports = JSON.parse('{"$schema":"https://schemas.wp.org/trunk/block.json","apiVersion":2,"name":"create-block/block-api","version":"1.0.0","title":"Block Api","category":"widgets","attributes":{"apiUrl":{"type":"string","default":"https://httpbin.org/post"},"numberOfElements":{"type":"number","default":5},"data":{"type":"object"}},"icon":"smiley","description":"Example block scaffolded with Create Block tool.","supports":{"html":false},"textdomain":"block-api","editorScript":"file:./index.js","editorStyle":"file:./index.css","style":"file:./style-index.css"}');
 
 /***/ })
 

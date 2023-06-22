@@ -10,7 +10,6 @@ import {
 	ToolbarGroup,
 	TextControl,
 	Button,
-	Spinner,
 } from "@wordpress/components";
 
 import { cog, seen } from "@wordpress/icons";
@@ -21,11 +20,10 @@ import { cog, seen } from "@wordpress/icons";
 import Preview from "./preview";
 
 export default function Edit({ attributes, setAttributes, isSelected }) {
-	const { apiUrl, numberOfElements, content } = attributes;
+	const { apiUrl, numberOfElements, data } = attributes;
 	const [isLoading, setIsLoading] = useState(false);
 	const [isPreview, setIsPreview] = useState(true);
 	const [apiResponse, setApiResponse] = useState(null);
-	const isDisabled = useContext(Disabled.Context);
 
 	const updateApiUrl = (newUrl) => {
 		setAttributes({ apiUrl: newUrl });
@@ -36,7 +34,7 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 	};
 
 	const updateContent = (newValue) => {
-		setAttributes({ content: newValue });
+		setAttributes({ data: newValue });
 	};
 
 	function switchToPreview() {
@@ -96,9 +94,9 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 		// Fetch API response when apiUrl or numberOfElements changes
 		if (isPreview) {
 			const transientName = "block_api_transient"; // Transient name
-			const expiration = 60 * 60; // Transient expiration time (1 hour)
+			const expiration = 60; // Transient expiration time (1 minute)
 			const payload = {
-				title: "Title 1",
+				title: "Title 3",
 				content: "Lorem ipsum dolor sit amet",
 			};
 
@@ -138,7 +136,6 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 
 					if (transientData.success) {
 						setApiResponse(transientData.data);
-						//   attributes.content = transientData.data.json;
 						updateContent(transientData.data.json);
 						setIsLoading(false);
 					} else {
@@ -172,7 +169,7 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 				</ToolbarGroup>
 			</BlockControls>
 			{isPreview ? (
-				<Preview content={attributes.content} isSelected={isSelected} />
+				<Preview data={attributes.data} isSelected={isSelected} />
 			) : (
 				<div>
 					<TextControl

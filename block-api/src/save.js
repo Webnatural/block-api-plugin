@@ -4,14 +4,14 @@
  *
  * @see https://developer.wordpress.org/block-editor/reference-guides/packages/packages-block-editor/#useblockprops
  */
-import { useBlockProps } from '@wordpress/block-editor';
+import { useBlockProps } from "@wordpress/block-editor";
 
 /**
  * Retrieves the translation of text.
  *
  * @see https://developer.wordpress.org/block-editor/reference-guides/packages/packages-i18n/
  */
-import { __ } from '@wordpress/i18n';
+import { __ } from "@wordpress/i18n";
 
 /**
  * The save function defines the way in which the different attributes should
@@ -23,16 +23,21 @@ import { __ } from '@wordpress/i18n';
  * @return {WPElement} Element to render.
  */
 export default function save({ attributes }) {
-	const { apiUrl, numberOfElements, content } = attributes;
-	console.log(attributes)
+	const { data } = attributes;
 
 	// Make API request and render the fetched elements
 	// Use the fetched data to render the desired output in the frontend
 
 	return (
-		<div { ...useBlockProps.save() }>
-			<h3>{content.title}</h3>
-			<p>{ content.content }</p>
+		<div {...useBlockProps.save()}>
+			{data && data.title && data.content ? (
+				<div>
+					<h3>{data.title}</h3>
+					<p>{data.content}</p>
+				</div>
+			) : (
+				"No content"
+			)}
 			{/* Render the fetched elements */}
 		</div>
 	);
