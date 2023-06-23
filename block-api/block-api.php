@@ -1,147 +1,215 @@
 <?php
 /**
- * Plugin Name:       Block Api
- * Description:       Example block scaffolded with Create Block tool.
- * Requires at least: 6.1
- * Requires PHP:      7.0
- * Version:           1.0.0
- * Author:            Dariusz Zielonka
- * License:           GPL-2.0-or-later
- * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
- * Text Domain:       block-api
+ * Plugin Name: Block API
+ * Description: Example block scaffolded with Create Block tool.
+ * Requires at least: 5.0
+ * Requires PHP: 7.0
+ * Version: 1.0.0
+ * Author: Dariusz Zielonka
+ * License: GPL-2.0-or-later
+ * License URI: https://www.gnu.org/licenses/gpl-2.0.html
+ * Text Domain: block-api
  *
- * @package           create-block
+ * @package create-block
  */
+class Block_API_Plugin {
+	/**
+	 * Initializes the plugin.
+	 */
+	public function init() {
+		add_action( 'rest_api_init', array( $this, 'register_rest_routes' ) );
+		add_action( 'update_transient', array( $this, 'update_transient_cb' ) );
+		register_activation_hook( __FILE__, array( $this, 'cron_activation' ) );
+		register_deactivation_hook( __FILE__, array( $this, 'cron_deactivation' ) );
+		add_filter( 'cron_schedules', array( $this, 'block_api_cron_schedules' ) );
 
-/**
- * Registers the block using the metadata loaded from the `block.json` file.
- * Behind the scenes, it registers also all assets so they can be enqueued
- * through the block editor in the corresponding context.
- *
- * @see https://developer.wordpress.org/reference/functions/register_block_type/
- */
-function create_block_block_api_block_init() {
-	register_block_type(
-		__DIR__ . '/build',
-		array(
-			'render_callback' => 'render_frontend',
-		)
-	);
-}
-	add_action( 'init', 'create_block_block_api_block_init' );
+		if ( $this->is_gutenberg_supported() ) {
+			// Check if Gutenberg is supported based on WordPress version and active theme
+			add_action( 'init', array( $this, 'register_block_type' ) );
+		} else {
+			require_once __DIR__ . '/includes/class-block-api-widget.php';
+		}
+	}
 
-
-
-// Add custom REST API endpoint for managing transients
-function block_api_register_rest_routes() {
-	register_rest_route(
-		'block-api-block/v1',
-		'/transients/(?P<transientName>[a-zA-Z0-9-_]+)',
-		array(
-			'methods'             => 'GET, POST',
-			'callback'            => 'block_api_transient_handler',
-			'permission_callback' => '__return_true',
-		)
-	);
-}
-add_action( 'rest_api_init', 'block_api_register_rest_routes' );
-
-// Handler for the custom REST API endpoint
-function block_api_transient_handler( WP_REST_Request $request ) {
-	$transient_name = $request->get_param( 'transientName' );
-
-	if ( $request->get_method() === 'POST' ) {
-		$data = $request->get_json_params();
-
-		if ( $data && isset( $data['data'] ) && isset( $data['expiration'] ) ) {
-			$transient_data = $data['data'];
-			$expiration     = absint( $data['expiration'] );
-
-			set_transient( $transient_name, $transient_data, $expiration );
-
-			return array(
-				'success' => true,
-				'message' => 'Transient set successfully.',
-			);
+	/**
+	 * Checks if Gutenberg is supported.
+	 *
+	 * @return bool Whether Gutenberg is supported or not.
+	 */
+	public function is_gutenberg_supported() {
+		// Check WordPress version.
+		global $wp_version;
+		$required_version = '5.0';
+		if ( version_compare( $wp_version, $required_version, '<' ) ) {
+			return false;
 		}
 
-		return array(
-			'success' => false,
-			'message' => 'Invalid transient data.',
-		);
+		// Check if the active theme supports Gutenberg.
+		if ( function_exists( 'current_theme_supports' ) && ! current_theme_supports( 'core-block-patterns' ) ) {
+			return false;
+		}
+
+		return true;
 	}
 
-	// GET request, retrieve the transient data
-	$transient_data = get_transient( $transient_name );
-
-	if ( $transient_data === false ) {
-		return array(
-			'success' => false,
-			'message' => 'Transient not found.',
-		);
+	/**
+	 * Registers the block type.
+	 */
+	public function register_block_type() {
+		if ( $this->is_gutenberg_supported() ) {
+			register_block_type(
+				__DIR__ . '/build',
+				array(
+					'render_callback' => array( $this, 'block_api_render' ),
+				)
+			);
+		}
 	}
 
-	return array(
-		'success' => true,
-		'data'    => $transient_data,
-	);
-}
+	/**
+	 * Renders the block content.
+	 *
+	 * @param array $attributes Block attributes.
+	 * @return string Block markup.
+	 */
+	public function block_api_render( $attributes ) {
+		$title   = $attributes['title'];
+		$content = get_transient( 'block_api_transient' );
+		$markup  = '';
 
-class API_Block_Widget extends WP_Widget {
-	public function __construct() {
-		parent::__construct(
-			'block_api_widget',
-			__( 'API Block Widget', 'api-block-widget' ),
+		if ( $title ) {
+			$markup .= '<h2>' . esc_html( $title ) . '</h2>';
+		}
+
+		if ( $content ) {
+			$markup .= '<pre>' . esc_html( $content ) . '</pre>';
+		}
+
+		return $markup;
+	}
+
+	/**
+	 * Registers REST API routes.
+	 */
+	public function register_rest_routes() {
+		register_rest_route(
+			'block-api-block/v1',
+			'/transients/(?P<transientName>[a-zA-Z0-9-_]+)',
 			array(
-				'description' => __( 'A widget to display API response as in API Block.', 'api-block-widget' ),
+				'methods'             => 'GET, POST',
+				'callback'            => array( $this, 'block_api_transient_handler' ),
+				'permission_callback' => '__return_true',
 			)
 		);
 	}
 
-	public function widget( $args, $instance ) {
-		echo $args['before_widget'];
+	/**
+	 * Handles GET and POST requests for transients.
+	 *
+	 * @param WP_REST_Request $request REST API request object.
+	 * @return array Response data.
+	 */
+	public function block_api_transient_handler( WP_REST_Request $request ) {
+		$transient_name = $request->get_param( 'transientName' );
 
-		$title = apply_filters( 'widget_title', $instance['title'] );
-		if ( $title ) {
-			echo $args['before_title'] . $title . $args['after_title'];
-		}
+		if ( $request->get_method() === 'POST' ) {
+			$data = $request->get_json_params();
 
-		$api_response = get_transient( 'block_api_transient' );
-		if ( $api_response ) {
-			echo '<pre>' . esc_html( $api_response ) . '</pre>';
-		} else {
-			// Fetch API response if transient doesn't exist
-			$api_url  = 'https://httpbin.org/post';
-			$api_data = array(
-				'title'   => 'Title 3',
-				'content' => 'Lorem ipsum dolor sit amet',
-			);
-			$response = wp_remote_post(
-				$api_url,
-				array(
-					'body'    => wp_json_encode( $api_data ),
-					'headers' => array(
-						'Content-Type' => 'application/json',
-					),
-				)
-			);
+			if ( $data && isset( $data['data'] ) && isset( $data['expiration'] ) ) {
+				$transient_data = $data['data'];
+				$expiration     = absint( $data['expiration'] );
 
-			if ( ! is_wp_error( $response ) && wp_remote_retrieve_response_code( $response ) === 200 ) {
-				$api_response = wp_remote_retrieve_body( $response );
-				set_transient( 'block_api_transient', $api_response, MINUTE_IN_SECONDS );
-				echo '<pre>' . esc_html( $api_response ) . '</pre>';
-			} else {
-				echo '<p>No API response available.</p>';
+				set_transient( $transient_name, $transient_data, $expiration );
+
+				return array(
+					'success' => true,
+					'message' => 'Transient set successfully.',
+				);
 			}
+
+			return array(
+				'success' => false,
+				'message' => 'Invalid transient data.',
+			);
 		}
 
-		echo $args['after_widget'];
+		$transient_data = get_transient( $transient_name );
+
+		if ( false === $transient_data ) {
+			return array(
+				'success' => false,
+				'message' => 'Transient not found.',
+			);
+		}
+
+		return array(
+			'success' => true,
+			'data'    => $transient_data,
+		);
 	}
 
+	/**
+	 * Adds custom cron schedules.
+	 *
+	 * @param array $schedules Existing cron schedules.
+	 * @return array Modified cron schedules.
+	 */
+	public function block_api_cron_schedules( $schedules ) {
+		if ( ! isset( $schedules['5min'] ) ) {
+			$schedules['5min'] = array(
+				'interval' => 5 * 60,
+				'display'  => __( 'Once every 5 minutes' ),
+			);
+		}
+
+		return $schedules;
+	}
+
+	/**
+	 * Updates the transient callback.
+	 */
+	public function update_transient_cb() {
+		$api_url  = 'https://httpbin.org/post';
+		$api_data = array(
+			'title'   => 'Hello from backend :)',
+			'content' => 'Lorem ipsum dolor sit amet',
+		);
+
+		$response = wp_remote_post(
+			$api_url,
+			array(
+				'body'    => wp_json_encode( $api_data ),
+				'headers' => array(
+					'Content-Type' => 'application/json',
+				),
+			)
+		);
+
+		if ( ! is_wp_error( $response ) && wp_remote_retrieve_response_code( $response ) === 200 ) {
+			$api_response = wp_remote_retrieve_body( $response );
+			set_transient( 'block_api_transient', $api_response, 3600 );
+		}
+	}
+
+	/**
+	 * Handles plugin activation.
+	 */
+	public function cron_activation() {
+		$this->update_transient_cb();
+
+		if ( ! wp_next_scheduled( 'update_transient' ) ) {
+			wp_schedule_event( time(), '5min', 'update_transient' );
+		}
+	}
+
+	/**
+	 * Handles plugin deactivation.
+	 */
+	public function cron_deactivation() {
+		wp_clear_scheduled_hook( 'update_transient' );
+		delete_transient( 'block_api_transient' );
+	}
 }
 
-// Register the widget
-function register_block_api_widget() {
-	register_widget( 'API_Block_Widget' );
-}
-add_action( 'widgets_init', 'register_block_api_widget' );
+$block_api = new Block_API_Plugin();
+$block_api->init();

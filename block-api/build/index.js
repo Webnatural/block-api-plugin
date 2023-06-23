@@ -107,26 +107,17 @@ function Edit({
   isSelected
 }) {
   const {
-    apiUrl,
-    numberOfElements,
-    data
+    title
   } = attributes;
-  const [isLoading, setIsLoading] = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
   const [isPreview, setIsPreview] = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useState)(true);
-  const [apiResponse, setApiResponse] = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useState)(null);
-  const updateApiUrl = newUrl => {
-    setAttributes({
-      apiUrl: newUrl
-    });
-  };
-  const updateNumberOfElements = newValue => {
-    setAttributes({
-      numberOfElements: parseInt(newValue)
-    });
-  };
   const updateContent = newValue => {
     setAttributes({
       data: newValue
+    });
+  };
+  const updateTitle = newValue => {
+    setAttributes({
+      title: newValue
     });
   };
   function switchToPreview() {
@@ -136,7 +127,7 @@ function Edit({
     setIsPreview(false);
   }
 
-  // Function to get a transient using the WordPress REST API
+  // Function to get a transient using the WordPress REST API.
   const getTransient = transientName => {
     return fetch(`/?rest_route=/block-api-block/v1/transients/${transientName}`).then(response => {
       if (!response.ok) {
@@ -150,82 +141,22 @@ function Edit({
       return null;
     });
   };
-
-  // Function to set a transient using the WordPress REST API
-  const setTransient = (transientName, transientData) => {
-    return fetch(`/?rest_route=/block-api-block/v1/transients/${transientName}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(transientData)
-    }).then(response => {
-      if (!response.ok) {
-        throw new Error(response.statusText);
-      }
-      return response.json();
-    }).then(data => {
-      return data;
-    }).catch(error => {
-      console.error(error);
-      return null;
-    });
-  };
   (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
-    // Fetch API response when apiUrl or numberOfElements changes
-    if (isPreview) {
-      const transientName = "block_api_transient"; // Transient name
-      const expiration = 60; // Transient expiration time (1 minute)
-      const payload = {
-        title: "Title 3",
-        content: "Lorem ipsum dolor sit amet"
-      };
-      const fetchAPIResponse = async () => {
-        try {
-          const response = await fetch(apiUrl, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify(payload)
-          });
-          if (response.ok) {
-            const data = await response.json();
-            setApiResponse(data);
-
-            // Store the API response in a transient using WordPress functions
-            const transientData = {
-              data: data,
-              expiration: expiration
-            };
-            setTransient(transientName, transientData);
-          } else {
-            throw new Error(response.statusText);
-          }
-        } catch (error) {
-          console.error(error);
+    const transientName = "block_api_transient"; // Transient name.
+    const checkTransient = async () => {
+      try {
+        const transientData = await getTransient(transientName);
+        if (transientData.success) {
+          updateContent(transientData.data);
+        } else {
+          updateContent(`<p>No API response available.</p>`);
         }
-        setIsLoading(false);
-      };
-
-      // Check if the transient exists and is not expired
-      const checkTransient = async () => {
-        try {
-          const transientData = await getTransient(transientName);
-          if (transientData.success) {
-            setApiResponse(transientData.data);
-            updateContent(transientData.data.json);
-            setIsLoading(false);
-          } else {
-            fetchAPIResponse();
-          }
-        } catch (error) {
-          console.error(error);
-        }
-      };
-      checkTransient();
-    }
-  }, [apiUrl, numberOfElements, isPreview]);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+    checkTransient();
+  }, []);
   return (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", (0,_wordpress_block_editor__WEBPACK_IMPORTED_MODULE_2__.useBlockProps)({
     className: "block-library-block_api"
   }), (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(_wordpress_block_editor__WEBPACK_IMPORTED_MODULE_2__.BlockControls, null, (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.ToolbarGroup, null, (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.ToolbarButton, {
@@ -239,17 +170,12 @@ function Edit({
     onClick: switchToPreview,
     icon: _wordpress_icons__WEBPACK_IMPORTED_MODULE_6__["default"]
   }))), isPreview ? (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(_preview__WEBPACK_IMPORTED_MODULE_4__["default"], {
-    data: attributes.data,
+    attributes: attributes,
     isSelected: isSelected
   }) : (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", null, (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.TextControl, {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)("API URL", "block-api-block"),
-    value: apiUrl,
-    onChange: updateApiUrl
-  }), (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.TextControl, {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)("Number of Elements", "block-api-block"),
-    value: numberOfElements,
-    type: "number",
-    onChange: updateNumberOfElements
+    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)("Title", "block-api-block"),
+    value: title,
+    onChange: updateTitle
   }), (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.Button, {
     variant: "primary",
     onClick: switchToPreview
@@ -269,8 +195,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _wordpress_blocks__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_wordpress_blocks__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _style_scss__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./style.scss */ "./src/style.scss");
 /* harmony import */ var _edit__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./edit */ "./src/edit.js");
-/* harmony import */ var _save__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./save */ "./src/save.js");
-/* harmony import */ var _block_json__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./block.json */ "./src/block.json");
+/* harmony import */ var _block_json__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./block.json */ "./src/block.json");
 /**
  * Registers a new block provided a unique name and an object defining its behavior.
  *
@@ -293,21 +218,21 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-
 /**
  * Every block starts by registering a new block type definition.
  *
  * @see https://developer.wordpress.org/block-editor/reference-guides/block-api/block-registration/
  */
-(0,_wordpress_blocks__WEBPACK_IMPORTED_MODULE_0__.registerBlockType)(_block_json__WEBPACK_IMPORTED_MODULE_4__.name, {
+(0,_wordpress_blocks__WEBPACK_IMPORTED_MODULE_0__.registerBlockType)(_block_json__WEBPACK_IMPORTED_MODULE_3__.name, {
   /**
    * @see ./edit.js
    */
-  edit: _edit__WEBPACK_IMPORTED_MODULE_2__["default"],
+  edit: _edit__WEBPACK_IMPORTED_MODULE_2__["default"]
+
   /**
    * @see ./save.js
    */
-  save: _save__WEBPACK_IMPORTED_MODULE_3__["default"]
+  // save: null,
 });
 
 /***/ }),
@@ -324,93 +249,11 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var _wordpress_element__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @wordpress/element */ "@wordpress/element");
 /* harmony import */ var _wordpress_element__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_wordpress_element__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _wordpress_block_editor__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @wordpress/block-editor */ "@wordpress/block-editor");
-/* harmony import */ var _wordpress_block_editor__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_wordpress_block_editor__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var _wordpress_data__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @wordpress/data */ "@wordpress/data");
-/* harmony import */ var _wordpress_data__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(_wordpress_data__WEBPACK_IMPORTED_MODULE_2__);
 
-/**
- * WordPress dependencies
- */
-
-
-
-
-// Default styles used to unset some of the styles
-// that might be inherited from the editor style.
-const DEFAULT_STYLES = `
-	html,body,:root {
-		margin: 0 !important;
-		padding: 0 !important;
-		overflow: visible !important;
-		min-height: auto !important;
-	}
-`;
 function BlockApiPreview({
-  data,
-  isSelected
-}) {
-  const settingStyles = (0,_wordpress_data__WEBPACK_IMPORTED_MODULE_2__.useSelect)(select => {
-    return select(_wordpress_block_editor__WEBPACK_IMPORTED_MODULE_1__.store).getSettings()?.styles;
-  }, []);
-  const styles = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useMemo)(() => [DEFAULT_STYLES, ...(0,_wordpress_block_editor__WEBPACK_IMPORTED_MODULE_1__.transformStyles)(settingStyles)], [settingStyles]);
-  return (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, data && data.title && data.content ? (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", null, (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("h3", null, data.title), (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", null, data.content)) : "No content");
-}
-
-/***/ }),
-
-/***/ "./src/save.js":
-/*!*********************!*\
-  !*** ./src/save.js ***!
-  \*********************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (/* binding */ save)
-/* harmony export */ });
-/* harmony import */ var _wordpress_element__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @wordpress/element */ "@wordpress/element");
-/* harmony import */ var _wordpress_element__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_wordpress_element__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _wordpress_block_editor__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @wordpress/block-editor */ "@wordpress/block-editor");
-/* harmony import */ var _wordpress_block_editor__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_wordpress_block_editor__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var _wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @wordpress/i18n */ "@wordpress/i18n");
-/* harmony import */ var _wordpress_i18n__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__);
-
-/**
- * React hook that is used to mark the block wrapper element.
- * It provides all the necessary props like the class name.
- *
- * @see https://developer.wordpress.org/block-editor/reference-guides/packages/packages-block-editor/#useblockprops
- */
-
-
-/**
- * Retrieves the translation of text.
- *
- * @see https://developer.wordpress.org/block-editor/reference-guides/packages/packages-i18n/
- */
-
-
-/**
- * The save function defines the way in which the different attributes should
- * be combined into the final markup, which is then serialized by the block
- * editor into `post_content`.
- *
- * @see https://developer.wordpress.org/block-editor/reference-guides/block-api/block-edit-save/#save
- *
- * @return {WPElement} Element to render.
- */
-function save({
   attributes
 }) {
-  const {
-    data
-  } = attributes;
-
-  // Make API request and render the fetched elements
-  // Use the fetched data to render the desired output in the frontend
-
-  return (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", _wordpress_block_editor__WEBPACK_IMPORTED_MODULE_1__.useBlockProps.save(), data && data.title && data.content ? (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", null, (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("h3", null, data.title), (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("p", null, data.content)) : "No content");
+  return (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)(_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, attributes.title && (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("h2", null, attributes.title), !!attributes.data ? (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("div", null, (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createElement)("pre", null, attributes.data)) : "Loading or no data from transient...");
 }
 
 /***/ }),
@@ -457,16 +300,6 @@ module.exports = window["wp"]["components"];
 
 /***/ }),
 
-/***/ "@wordpress/data":
-/*!******************************!*\
-  !*** external ["wp","data"] ***!
-  \******************************/
-/***/ ((module) => {
-
-module.exports = window["wp"]["data"];
-
-/***/ }),
-
 /***/ "@wordpress/element":
 /*!*********************************!*\
   !*** external ["wp","element"] ***!
@@ -503,7 +336,7 @@ module.exports = window["wp"]["primitives"];
   \************************/
 /***/ ((module) => {
 
-module.exports = JSON.parse('{"$schema":"https://schemas.wp.org/trunk/block.json","apiVersion":2,"name":"create-block/block-api","version":"1.0.0","title":"Block Api","category":"widgets","attributes":{"apiUrl":{"type":"string","default":"https://httpbin.org/post"},"numberOfElements":{"type":"number","default":5},"data":{"type":"object"}},"icon":"smiley","description":"Example block scaffolded with Create Block tool.","supports":{"html":false},"textdomain":"block-api","editorScript":"file:./index.js","editorStyle":"file:./index.css","style":"file:./style-index.css"}');
+module.exports = JSON.parse('{"$schema":"https://schemas.wp.org/trunk/block.json","apiVersion":2,"name":"create-block/block-api","version":"1.0.0","title":"Block Api","category":"widgets","attributes":{"title":{"type":"string","default":""},"data":{"type":"object"}},"icon":"smiley","description":"Example block scaffolded with Create Block tool.","supports":{"html":false},"textdomain":"block-api","editorScript":"file:./index.js","editorStyle":"file:./index.css","style":"file:./style-index.css"}');
 
 /***/ })
 

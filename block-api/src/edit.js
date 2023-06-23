@@ -2,11 +2,10 @@
  * WordPress dependencies
  */
 import { __ } from "@wordpress/i18n";
-import { useContext, useState, useEffect } from "@wordpress/element";
+import { useState, useEffect } from "@wordpress/element";
 import { BlockControls, useBlockProps } from "@wordpress/block-editor";
 import {
 	ToolbarButton,
-	Disabled,
 	ToolbarGroup,
 	TextControl,
 	Button,
@@ -20,21 +19,15 @@ import { cog, seen } from "@wordpress/icons";
 import Preview from "./preview";
 
 export default function Edit({ attributes, setAttributes, isSelected }) {
-	const { apiUrl, numberOfElements, data } = attributes;
-	const [isLoading, setIsLoading] = useState(false);
+	const { title } = attributes;
 	const [isPreview, setIsPreview] = useState(true);
-	const [apiResponse, setApiResponse] = useState(null);
-
-	const updateApiUrl = (newUrl) => {
-		setAttributes({ apiUrl: newUrl });
-	};
-
-	const updateNumberOfElements = (newValue) => {
-		setAttributes({ numberOfElements: parseInt(newValue) });
-	};
 
 	const updateContent = (newValue) => {
 		setAttributes({ data: newValue });
+	};
+
+	const updateTitle = (newValue) => {
+		setAttributes({ title: newValue });
 	};
 
 	function switchToPreview() {
@@ -45,7 +38,7 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 		setIsPreview(false);
 	}
 
-	// Function to get a transient using the WordPress REST API
+	// Function to get a transient using the WordPress REST API.
 	const getTransient = (transientName) => {
 		return fetch(`/?rest_route=/block-api-block/v1/transients/${transientName}`)
 			.then((response) => {
@@ -63,92 +56,22 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 			});
 	};
 
-	// Function to set a transient using the WordPress REST API
-	const setTransient = (transientName, transientData) => {
-		return fetch(
-			`/?rest_route=/block-api-block/v1/transients/${transientName}`,
-			{
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-				},
-				body: JSON.stringify(transientData),
-			}
-		)
-			.then((response) => {
-				if (!response.ok) {
-					throw new Error(response.statusText);
-				}
-				return response.json();
-			})
-			.then((data) => {
-				return data;
-			})
-			.catch((error) => {
-				console.error(error);
-				return null;
-			});
-	};
-
 	useEffect(() => {
-		// Fetch API response when apiUrl or numberOfElements changes
-		if (isPreview) {
-			const transientName = "block_api_transient"; // Transient name
-			const expiration = 60; // Transient expiration time (1 minute)
-			const payload = {
-				title: "Title 3",
-				content: "Lorem ipsum dolor sit amet",
-			};
-
-			const fetchAPIResponse = async () => {
-				try {
-					const response = await fetch(apiUrl, {
-						method: "POST",
-						headers: {
-							"Content-Type": "application/json",
-						},
-						body: JSON.stringify(payload),
-					});
-
-					if (response.ok) {
-						const data = await response.json();
-						setApiResponse(data);
-
-						// Store the API response in a transient using WordPress functions
-						const transientData = {
-							data: data,
-							expiration: expiration,
-						};
-						setTransient(transientName, transientData);
-					} else {
-						throw new Error(response.statusText);
-					}
-				} catch (error) {
-					console.error(error);
+		const transientName = "block_api_transient"; // Transient name.
+		const checkTransient = async () => {
+			try {
+				const transientData = await getTransient(transientName);
+				if (transientData.success) {
+					updateContent(transientData.data);
+				} else {
+					updateContent(`<p>No API response available.</p>`);
 				}
-				setIsLoading(false);
-			};
-
-			// Check if the transient exists and is not expired
-			const checkTransient = async () => {
-				try {
-					const transientData = await getTransient(transientName);
-
-					if (transientData.success) {
-						setApiResponse(transientData.data);
-						updateContent(transientData.data.json);
-						setIsLoading(false);
-					} else {
-						fetchAPIResponse();
-					}
-				} catch (error) {
-					console.error(error);
-				}
-			};
-
-			checkTransient();
-		}
-	}, [apiUrl, numberOfElements, isPreview]);
+			} catch (error) {
+				console.error(error);
+			}
+		};
+		checkTransient();
+	}, []);
 
 	return (
 		<div {...useBlockProps({ className: "block-library-block_api" })}>
@@ -169,19 +92,13 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 				</ToolbarGroup>
 			</BlockControls>
 			{isPreview ? (
-				<Preview data={attributes.data} isSelected={isSelected} />
+				<Preview attributes={attributes} isSelected={isSelected} />
 			) : (
 				<div>
 					<TextControl
-						label={__("API URL", "block-api-block")}
-						value={apiUrl}
-						onChange={updateApiUrl}
-					/>
-					<TextControl
-						label={__("Number of Elements", "block-api-block")}
-						value={numberOfElements}
-						type="number"
-						onChange={updateNumberOfElements}
+						label={__("Title", "block-api-block")}
+						value={title}
+						onChange={updateTitle}
 					/>
 					<Button variant="primary" onClick={switchToPreview}>
 						{__("Update", "block-api-block")}

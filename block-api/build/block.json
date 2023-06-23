@@ -6,13 +6,9 @@
   "title": "Block Api",
   "category": "widgets",
   "attributes": {
-    "apiUrl": {
+    "title": {
       "type": "string",
-      "default": "https://httpbin.org/post"
-    },
-    "numberOfElements": {
-      "type": "number",
-      "default": 5
+      "default": ""
     },
     "data": {
       "type": "object"
