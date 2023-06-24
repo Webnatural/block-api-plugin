@@ -64,7 +64,7 @@ export default function Edit({ attributes, setAttributes, isSelected }) {
 				if (transientData.success) {
 					updateContent(transientData.data);
 				} else {
-					updateContent(`<p>No API response available.</p>`);
+					updateContent(`There was an error in API response.`);
 				}
 			} catch (error) {
 				console.error(error);

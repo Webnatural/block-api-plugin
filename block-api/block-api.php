@@ -24,7 +24,7 @@ class Block_API_Plugin {
 		add_filter( 'cron_schedules', array( $this, 'block_api_cron_schedules' ) );
 
 		if ( $this->is_gutenberg_supported() ) {
-			// Check if Gutenberg is supported based on WordPress version and active theme
+			// Check if Gutenberg is supported based on WordPress version and active theme.
 			add_action( 'init', array( $this, 'register_block_type' ) );
 		} else {
 			require_once __DIR__ . '/includes/class-block-api-widget.php';
@@ -83,6 +83,8 @@ class Block_API_Plugin {
 
 		if ( $content ) {
 			$markup .= '<pre>' . esc_html( $content ) . '</pre>';
+		} else {
+			$markup .= 'There was an error in API response.';
 		}
 
 		return $markup;
@@ -184,7 +186,6 @@ class Block_API_Plugin {
 				),
 			)
 		);
-
 		if ( ! is_wp_error( $response ) && wp_remote_retrieve_response_code( $response ) === 200 ) {
 			$api_response = wp_remote_retrieve_body( $response );
 			set_transient( 'block_api_transient', $api_response, 3600 );

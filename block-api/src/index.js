@@ -34,5 +34,5 @@ registerBlockType(metadata.name, {
 	/**
 	 * @see ./save.js
 	 */
-	// save: null,
+	// save: null, // Rendering is done in render_callback in main plugin PHP file (block-api.php)
 });

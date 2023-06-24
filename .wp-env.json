@@ -5,9 +5,6 @@
         "WP_DEBUG_DISPLAY": true,
         "ALTERNATE_WP_CRON": true
     },
-    "plugins": [
-        "https://downloads.wordpress.org/plugin/wp-phpmyadmin-extension.zip"
-    ],
     "mappings": {
         "wp-content/plugins/plugin-block-api": "./block-api"
     }

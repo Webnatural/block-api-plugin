@@ -3,7 +3,7 @@
 /**
  * API Block Widget class.
  *
- * @package Your_Package_Name
+ * @package create-widget
  */
 class API_Block_Widget extends WP_Widget {
 
@@ -27,45 +27,17 @@ class API_Block_Widget extends WP_Widget {
 	 * @param array $instance Widget instance.
 	 */
 	public function widget( $args, $instance ) {
-		echo esc_attr( $args['before_widget'] );
+		echo $args['before_widget'];
 
 		$title   = apply_filters( 'widget_title', $instance['title'] );
-		$content = apply_filters( 'widget_content', $instance['content'] );
+		$content = get_transient( 'block_api_transient' );
 		if ( $title ) {
-			echo esc_attr( $args['before_title'] . $title . $args['after_title'] );
+			echo $args['before_title'] . $title . $args['after_title'];
 		}
 		if ( $content ) {
-			echo esc_attr( $args['before_content'] . $title . $args['after_content'] );
-		}
-
-		$api_response = get_transient( 'block_api_transient' );
-		if ( $api_response ) {
-			echo '<pre>' . esc_html( $api_response ) . '</pre>';
+			echo '<pre>' . esc_attr( $content ) . '</pre>';
 		} else {
-			// Fetch API response if transient doesn't exist.
-			$api_url  = 'https://httpbin.org/post';
-			$api_data = array(
-				'title'   => 'Title',
-				'content' => 'Lorem ipsum dolor sit amet',
-			);
-			$response = wp_remote_post(
-				$api_url,
-				array(
-					'body'    => wp_json_encode( $api_data ),
-					'headers' => array(
-						'Content-Type' => 'application/json',
-					),
-				)
-			);
-
-			if ( ! is_wp_error( $response ) && wp_remote_retrieve_response_code( $response ) === 200 ) {
-				$api_response = wp_remote_retrieve_body( $response );
-				set_transient( 'block_api_transient', $api_response, MINUTE_IN_SECONDS );
-				$content = $api_response;
-				echo '<pre>' . esc_html( $api_response ) . '</pre>';
-			} else {
-				echo '<p>No API response available.</p>';
-			}
+			echo esc_attr__( 'There was an error in API response.', 'block-api' );
 		}
 
 		echo $args['after_widget'];
@@ -114,10 +86,14 @@ class API_Block_Widget extends WP_Widget {
 	/**
 	 * Register the API_Block_Widget widget.
 	 */
-	public static function register_block_api_widget() {
-		register_widget( 'API_Block_Widget' );
-	}
+	// public static function register_block_api_widget() {
+	// register_widget( 'API_Block_Widget' );
+	// }
 
 }
 
-API_Block_Widget::register_block_api_widget();
+
+function register_block_api_widget() {
+	register_widget( 'API_Block_Widget' );
+}
+add_action( 'widgets_init', 'register_block_api_widget' );

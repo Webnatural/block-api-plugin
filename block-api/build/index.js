@@ -149,7 +149,7 @@ function Edit({
         if (transientData.success) {
           updateContent(transientData.data);
         } else {
-          updateContent(`<p>No API response available.</p>`);
+          updateContent(`There was an error in API response.`);
         }
       } catch (error) {
         console.error(error);
@@ -232,7 +232,7 @@ __webpack_require__.r(__webpack_exports__);
   /**
    * @see ./save.js
    */
-  // save: null,
+  // save: null, // Rendering is done in render_callback in main plugin PHP file (block-api.php)
 });
 
 /***/ }),
