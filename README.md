@@ -1,4 +1,4 @@
-=== WordPress Development Environment ===
+=== WordPress Development Environment (https://developer.wordpress.org/block-editor/reference-guides/packages/packages-env/) ===
 Contributors: Dariusz Zielonka
 Tags: development, environment, debug, plugins
 
