@@ -1,12 +1,12 @@
-=== WordPress Development Environment (https://developer.wordpress.org/block-editor/reference-guides/packages/packages-env/) ===
+# WordPress Development Environment (https://developer.wordpress.org/block-editor/reference-guides/packages/packages-env/)
 Contributors: Dariusz Zielonka
 Tags: development, environment, debug, plugins
 
-== Description ==
+## Description
 
 The WordPress Development Environment is a local development setup using the `.wp-env` configuration file. It allows you to run WordPress with specific debugging settings and pre-installed plugins for development purposes.
 
-== Installation ==
+## Installation
 
 To set up the WordPress Development Environment:
 
@@ -17,7 +17,7 @@ To set up the WordPress Development Environment:
 
 The development environment is now ready for use with the specified debugging settings and pre-installed plugins.
 
-== Configuration ==
+## Configuration
 
 The `.wp-env` configuration file includes the following settings:
 
@@ -30,7 +30,7 @@ You can modify these settings based on your development needs by updating the co
 
 You can add or remove plugins from the list by modifying the `plugins` section in the `.wp-env` file.
 
-== Plugin Mapping ==
+## Plugin Mapping
 
 The `.wp-env` file also includes a mapping configuration to link a specific plugin directory to a location within your WordPress project. This allows you to develop a plugin directly in your project directory without having to move or copy files.
 
